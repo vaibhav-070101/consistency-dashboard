@@ -164,9 +164,8 @@ function Dashboard({ onLogout }) {
 
           <div className="card" style={{ marginBottom: 16 }}>
             <div className="card-title">
-              Habit Tracker
+              <span>Habit Tracker <button className="mini-btn" onClick={() => trackerRef.current?.openAddModal()} title="Add a new habit" style={{ marginLeft: 8 }}>+ Add</button></span>
               <div className="card-title-actions">
-                <button className="mini-btn" onClick={() => trackerRef.current?.openAddModal()} title="Add a new habit">+ Add</button>
                 <button className="mini-btn" onClick={() => trackerRef.current?.scrollToToday()} title="Scroll to today">Today</button>
                 <button className="mini-btn" onClick={fetchData} title="Refresh data">↻</button>
               </div>
@@ -249,7 +248,7 @@ function Dashboard({ onLogout }) {
             </div>
             <div className="card">
               <div className="card-title">Habit Scorecard</div>
-              <HabitScorecard stats={stats} habits={habits} />
+              <HabitScorecard stats={stats} habits={habits} logs={logs} />
             </div>
           </div>
         </>

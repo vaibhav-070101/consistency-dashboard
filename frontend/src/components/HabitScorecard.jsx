@@ -3,7 +3,7 @@
  * Excludes paused/stopped habits from KPIs and highlights.
  */
 
-export default function HabitScorecard({ stats, habits: rawHabits }) {
+export default function HabitScorecard({ stats, habits: rawHabits, logs }) {
   if (!stats || stats.habits.length === 0) {
     return <p style={{ color: 'var(--text-dim)', fontSize: 13 }}>No data yet</p>
   }
@@ -24,7 +24,17 @@ export default function HabitScorecard({ stats, habits: rawHabits }) {
     ? activeHabits.reduce((a, b) => a.percentage < b.percentage ? a : b)
     : null
 
-  const totalCompleted = activeHabits.reduce((s, h) => s + h.completed, 0)
+  // Count distinct days where at least one active habit was completed
+  const activeDates = new Set()
+  if (logs) {
+    const activeIds = new Set(activeHabits.map(h => h.id))
+    for (const [hid, dates] of Object.entries(logs)) {
+      if (activeIds.has(Number(hid))) {
+        dates.forEach(d => activeDates.add(d))
+      }
+    }
+  }
+  const totalCompleted = activeDates.size
   const activeDays = activeHabits.length > 0
     ? Math.max(...activeHabits.map(h => h.expected > 0 ? h.expected : 0))
     : 0
@@ -38,7 +48,7 @@ export default function HabitScorecard({ stats, habits: rawHabits }) {
       <div className="scorecard-summary">
         <div className="scorecard-kpi">
           <span className="scorecard-kpi-value">{totalCompleted}</span>
-          <span className="scorecard-kpi-label">Total Check-ins</span>
+          <span className="scorecard-kpi-label">Days Tracked</span>
         </div>
         <div className="scorecard-kpi">
           <span className="scorecard-kpi-value">{activeDays}</span>
