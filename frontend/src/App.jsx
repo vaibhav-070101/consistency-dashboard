@@ -10,7 +10,7 @@
  *            Child components call callbacks (passed as props) to trigger actions
  */
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Header from './components/Header'
 import StatsCards from './components/StatsCards'
 import ConsistencyChart from './components/ConsistencyChart'
@@ -19,6 +19,7 @@ import QuoteWidget from './components/QuoteWidget'
 import WeeklyBarChart from './components/WeeklyBarChart'
 import HabitScorecard from './components/HabitScorecard'
 import * as api from './api'
+import { onSaveStatus, flushQueue, getPendingCount } from './api'
 
 export default function App() {
   const now = new Date()
@@ -28,6 +29,10 @@ export default function App() {
   const [logs, setLogs] = useState({})      // { habitId: ["2026-03-01", ...] }
   const [stats, setStats] = useState(null)  // MonthlyStats from backend
   const [loading, setLoading] = useState(true)
+  const [saveStatus, setSaveStatus] = useState('saved') // saved | saving | syncing | offline | error
+  const trackerRef = useRef(null)
+
+  useEffect(() => { onSaveStatus(setSaveStatus) }, [])
 
   // Fetch all data whenever month/year changes
   const fetchData = useCallback(async () => {
@@ -102,6 +107,21 @@ export default function App() {
         onYearChange={setYear}
       />
 
+      <div className="save-indicator-row">
+        <span className={`save-indicator ${saveStatus}`}>
+          {saveStatus === 'saved' && '✓ Saved'}
+          {saveStatus === 'saving' && '⏳ Saving...'}
+          {saveStatus === 'syncing' && '🔄 Syncing...'}
+          {saveStatus === 'offline' && (
+            <>
+              ⚡ Offline ({getPendingCount()} queued)
+              <button className="sync-btn" onClick={async () => { await flushQueue(); fetchData() }}>Sync now</button>
+            </>
+          )}
+          {saveStatus === 'error' && '⚠ Error'}
+        </span>
+      </div>
+
       <QuoteWidget />
 
       {loading ? (
@@ -118,8 +138,15 @@ export default function App() {
           </div>
 
           <div className="card" style={{ marginBottom: 16 }}>
-            <div className="card-title">Habit Tracker</div>
+            <div className="card-title">
+              Habit Tracker
+              <div className="card-title-actions">
+                <button className="mini-btn" onClick={() => trackerRef.current?.scrollToToday()} title="Scroll to today">Today</button>
+                <button className="mini-btn" onClick={fetchData} title="Refresh data">↻</button>
+              </div>
+            </div>
             <HabitTracker
+              ref={trackerRef}
               habits={habits}
               logs={logs}
               stats={stats}

@@ -71,6 +71,33 @@ body {
   justify-content: space-between;
 }
 
+.card-title-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.mini-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 10px;
+  font-weight: 600;
+  font-family: inherit;
+  padding: 3px 8px;
+  border-radius: 5px;
+  cursor: pointer;
+  text-transform: none;
+  letter-spacing: 0;
+  line-height: 1.3;
+  transition: all 0.15s;
+}
+
+.mini-btn:hover {
+  border-color: var(--green);
+  color: var(--text-bright);
+  background: var(--green-bg);
+}
+
 /* ─── Header ──────────────────────────────────────────────── */
 
 .header {
@@ -273,6 +300,17 @@ body {
 
 .weekend-th .day-letter,
 .weekend-th .day-num { color: #555 !important; }
+
+/* Today column highlight */
+.th-day[data-today="true"] {
+  background: var(--green-bg) !important;
+  border-radius: 6px 6px 0 0;
+}
+
+.th-day[data-today="true"] .day-num {
+  color: var(--green) !important;
+  font-weight: 800;
+}
 
 /* ─── Spacer columns (clean week gaps) ───────────────────── */
 .th-spacer, .td-spacer {
@@ -827,6 +865,62 @@ body {
 .scorecard-streak {
   font-size: 11px;
   white-space: nowrap;
+}
+
+/* ─── Save Status Indicator ───────────────────────────────── */
+
+.save-indicator-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+
+.save-indicator {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s ease;
+}
+
+.save-indicator.saved {
+  color: var(--green);
+  background: rgba(76, 175, 80, 0.1);
+}
+
+.save-indicator.saving,
+.save-indicator.syncing {
+  color: var(--orange);
+  background: rgba(255, 167, 38, 0.1);
+}
+
+.save-indicator.offline {
+  color: var(--orange);
+  background: rgba(255, 167, 38, 0.12);
+}
+
+.save-indicator.error {
+  color: var(--red);
+  background: rgba(239, 83, 80, 0.1);
+}
+
+.sync-btn {
+  background: rgba(255, 167, 38, 0.2);
+  border: 1px solid rgba(255, 167, 38, 0.3);
+  color: var(--orange);
+  font-size: 9px;
+  font-weight: 600;
+  font-family: inherit;
+  padding: 1px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.sync-btn:hover {
+  background: rgba(255, 167, 38, 0.3);
 }
 
 /* ─── Loading ─────────────────────────────────────────────── */

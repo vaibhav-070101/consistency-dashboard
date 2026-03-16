@@ -5,7 +5,7 @@
  * Custom styled checkboxes (not native inputs).
  */
 
-import { useState, useMemo, useRef } from 'react'
+import { useState, useMemo, useRef, useEffect, useImperativeHandle, forwardRef } from 'react'
 
 const DAY_ABBR = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
 
@@ -120,14 +120,28 @@ const CheckIcon = (
   </svg>
 )
 
-export default function HabitTracker({
+const HabitTracker = forwardRef(function HabitTracker({
   habits, logs, stats, month, year, onToggle, onCreate, onUpdate, onLifecycle, onDelete,
-}) {
+}, ref) {
   const [name, setName] = useState('')
   const [freq, setFreq] = useState(5)
   const [startDate, setStartDate] = useState(formatDate(year, month, 1))
   const [menuState, setMenuState] = useState(null) // { habitId, top, left }
   const wrapperRef = useRef(null)
+  const gridRef = useRef(null)
+
+  useImperativeHandle(ref, () => ({
+    scrollToToday() {
+      const grid = gridRef.current
+      if (!grid) return
+      const todayCell = grid.querySelector('[data-today="true"]')
+      if (!todayCell) return
+      const gridRect = grid.getBoundingClientRect()
+      const cellRect = todayCell.getBoundingClientRect()
+      const scrollLeft = cellRect.left - gridRect.left + grid.scrollLeft - gridRect.width / 2 + cellRect.width / 2
+      grid.scrollTo({ left: Math.max(0, scrollLeft), behavior: 'smooth' })
+    }
+  }))
 
   const openMenu = (habitId, e) => {
     const btn = e.currentTarget
@@ -162,7 +176,7 @@ export default function HabitTracker({
 
   return (
     <div className="habit-wrapper" ref={wrapperRef}>
-      <div className="habit-grid">
+      <div className="habit-grid" ref={gridRef}>
         <table className="habit-table">
           <colgroup>
             <col className="col-name" />
@@ -199,7 +213,9 @@ export default function HabitTracker({
               {columns.map((c, i) =>
                 c.type === 'spacer'
                   ? <th key={c.key} className="th-spacer"></th>
-                  : <th key={c.day} className={c.isWeekend ? 'th-day weekend-th' : 'th-day'}>
+                  : <th key={c.day}
+                      className={c.isWeekend ? 'th-day weekend-th' : 'th-day'}
+                      data-today={formatDate(year, month, c.day) === today ? 'true' : undefined}>
                       <span className="day-letter">{c.dayAbbr}</span>
                       <span className="day-num">{c.day}</span>
                     </th>
@@ -322,4 +338,6 @@ export default function HabitTracker({
       </form>
     </div>
   )
-}
+})
+
+export default HabitTracker
