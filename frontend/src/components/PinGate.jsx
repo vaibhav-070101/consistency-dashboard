@@ -33,19 +33,33 @@ export function storeAuth(token, user) {
 export async function validateStoredToken() {
   const token = getToken();
   if (!token) return false;
+
+  // Race the API call against a 3-second timeout.
+  // If backend is cold (Render sleeping), trust the stored token
+  // and let data sync in the background once it wakes up.
+  const user = getStoredUser();
+  const hasLocalData = !!token && !!user;
+
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3000);
+
     const res = await fetch(`${BASE}/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
+      signal: controller.signal,
     });
+    clearTimeout(timeout);
+
     if (res.ok) {
-      const user = await res.json();
-      localStorage.setItem(USER_KEY, JSON.stringify(user));
+      const userData = await res.json();
+      localStorage.setItem(USER_KEY, JSON.stringify(userData));
       return true;
     }
     clearAuth();
     return false;
   } catch {
-    return !!getToken();
+    // Timeout, network error, or abort — trust stored token if we have local data
+    return hasLocalData;
   }
 }
 
