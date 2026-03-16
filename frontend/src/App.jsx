@@ -166,6 +166,7 @@ function Dashboard({ onLogout }) {
             <div className="card-title">
               Habit Tracker
               <div className="card-title-actions">
+                <button className="mini-btn" onClick={() => trackerRef.current?.openAddModal()} title="Add a new habit">+ Add</button>
                 <button className="mini-btn" onClick={() => trackerRef.current?.scrollToToday()} title="Scroll to today">Today</button>
                 <button className="mini-btn" onClick={fetchData} title="Refresh data">↻</button>
               </div>

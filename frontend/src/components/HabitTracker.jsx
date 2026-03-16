@@ -5,7 +5,7 @@
  * Custom styled checkboxes (not native inputs).
  */
 
-import { useState, useMemo, useRef, useEffect, useImperativeHandle, forwardRef } from 'react'
+import { useState, useMemo, useRef, useImperativeHandle, forwardRef } from 'react'
 
 const DAY_ABBR = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
 
@@ -123,10 +123,11 @@ const CheckIcon = (
 const HabitTracker = forwardRef(function HabitTracker({
   habits, logs, stats, month, year, onToggle, onCreate, onUpdate, onLifecycle, onDelete,
 }, ref) {
-  const [name, setName] = useState('')
-  const [freq, setFreq] = useState(5)
-  const [startDate, setStartDate] = useState(formatDate(year, month, 1))
-  const [menuState, setMenuState] = useState(null) // { habitId, top, left }
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [newName, setNewName] = useState('')
+  const [newFreq, setNewFreq] = useState(5)
+  const [newStartDate, setNewStartDate] = useState(formatDate(year, month, new Date().getDate()))
+  const [menuState, setMenuState] = useState(null)
   const wrapperRef = useRef(null)
   const gridRef = useRef(null)
 
@@ -140,6 +141,9 @@ const HabitTracker = forwardRef(function HabitTracker({
       const cellRect = todayCell.getBoundingClientRect()
       const scrollLeft = cellRect.left - gridRect.left + grid.scrollLeft - gridRect.width / 2 + cellRect.width / 2
       grid.scrollTo({ left: Math.max(0, scrollLeft), behavior: 'smooth' })
+    },
+    openAddModal() {
+      setShowAddModal(true)
     }
   }))
 
@@ -160,11 +164,13 @@ const HabitTracker = forwardRef(function HabitTracker({
   const today = new Date().toISOString().slice(0, 10)
   const weeks = useMemo(() => buildWeeks(month, year), [month, year])
 
-  const handleSubmit = (e) => {
+  const handleAddSubmit = (e) => {
     e.preventDefault()
-    if (!name.trim()) return
-    onCreate({ name: name.trim(), frequency: freq, start_date: startDate, end_date: null })
-    setName('')
+    if (!newName.trim()) return
+    onCreate({ name: newName.trim(), frequency: newFreq, start_date: newStartDate, end_date: null })
+    setNewName('')
+    setNewFreq(5)
+    setShowAddModal(false)
   }
 
   // Build flat column list with spacer markers
@@ -327,15 +333,35 @@ const HabitTracker = forwardRef(function HabitTracker({
         )
       })()}
 
-      <form className="add-form" onSubmit={handleSubmit}>
-        <input type="text" placeholder="Habit name" value={name}
-          onChange={e => setName(e.target.value)} />
-        <select value={freq} onChange={e => setFreq(Number(e.target.value))}>
-          {[1, 2, 3, 4, 5, 6, 7].map(n => <option key={n} value={n}>{n}/week</option>)}
-        </select>
-        <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
-        <button type="submit" className="btn">+ Add</button>
-      </form>
+      {showAddModal && (
+        <>
+          <div className="habit-popover-backdrop" onClick={() => setShowAddModal(false)} />
+          <div className="add-habit-modal">
+            <div className="add-modal-header">
+              <span>New Habit</span>
+              <button type="button" className="add-modal-close" onClick={() => setShowAddModal(false)}>✕</button>
+            </div>
+            <form className="add-modal-form" onSubmit={handleAddSubmit}>
+              <label className="add-modal-label">
+                Name
+                <input type="text" placeholder="e.g. Gym, Reading..." value={newName}
+                  onChange={e => setNewName(e.target.value)} autoFocus />
+              </label>
+              <label className="add-modal-label">
+                Frequency
+                <select value={newFreq} onChange={e => setNewFreq(Number(e.target.value))}>
+                  {[1, 2, 3, 4, 5, 6, 7].map(n => <option key={n} value={n}>{n} days/week</option>)}
+                </select>
+              </label>
+              <label className="add-modal-label">
+                Start date
+                <input type="date" value={newStartDate} onChange={e => setNewStartDate(e.target.value)} />
+              </label>
+              <button type="submit" className="btn" disabled={!newName.trim()}>Add Habit</button>
+            </form>
+          </div>
+        </>
+      )}
     </div>
   )
 })
