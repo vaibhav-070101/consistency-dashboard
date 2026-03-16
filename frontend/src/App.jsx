@@ -188,40 +188,54 @@ function Dashboard({ onLogout }) {
           <div className="grid-2" style={{ marginBottom: 16 }}>
             <div className="card">
               <div className="card-title">Monthly Progress</div>
-              {stats?.habits.map(h => (
-                <div className="progress-item" key={h.id}>
-                  <div className="progress-top">
-                    <span className="progress-label">{h.name}</span>
-                    <span className="progress-meta">
-                      <span className="progress-pct">{Math.round(h.percentage * 100)}%</span>
-                      {h.streak_label !== '—' && (
-                        <span className="progress-streak">🔥 {h.streak_label}</span>
-                      )}
-                    </span>
+              {stats?.habits.map(h => {
+                const raw = habits.find(rh => rh.id === h.id)
+                const isPaused = raw?.status === 'paused'
+                return (
+                  <div className="progress-item" key={h.id} style={isPaused ? { opacity: 0.45 } : undefined}>
+                    <div className="progress-top">
+                      <span className="progress-label">
+                        {h.name}
+                        {isPaused && <span style={{ fontSize: 9, color: 'var(--orange)', marginLeft: 6 }}>PAUSED</span>}
+                      </span>
+                      <span className="progress-meta">
+                        <span className="progress-pct">{isPaused ? '—' : `${Math.round(h.percentage * 100)}%`}</span>
+                        {!isPaused && h.streak_label !== '—' && (
+                          <span className="progress-streak">🔥 {h.streak_label}</span>
+                        )}
+                      </span>
+                    </div>
+                    <div className="progress-bar-bg">
+                      <div className="progress-bar-fill" style={{ width: isPaused ? '0%' : `${Math.round(h.percentage * 100)}%` }} />
+                    </div>
                   </div>
-                  <div className="progress-bar-bg">
-                    <div className="progress-bar-fill" style={{ width: `${Math.round(h.percentage * 100)}%` }} />
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
 
             <div className="card">
               <div className="card-title">Weekly Progress</div>
-              {stats?.habits.map(h => (
-                <div className="progress-item" key={h.id}>
-                  <div className="progress-top">
-                    <span className="progress-label">{h.name}</span>
-                    <span className="progress-meta">
-                      <span className="progress-pct">{Math.round((h.weekly_pct ?? 0) * 100)}%</span>
-                      <span className="progress-streak" style={{ color: 'var(--text-dim)' }}>{h.frequency}/wk</span>
-                    </span>
+              {stats?.habits.map(h => {
+                const raw = habits.find(rh => rh.id === h.id)
+                const isPaused = raw?.status === 'paused'
+                return (
+                  <div className="progress-item" key={h.id} style={isPaused ? { opacity: 0.45 } : undefined}>
+                    <div className="progress-top">
+                      <span className="progress-label">
+                        {h.name}
+                        {isPaused && <span style={{ fontSize: 9, color: 'var(--orange)', marginLeft: 6 }}>PAUSED</span>}
+                      </span>
+                      <span className="progress-meta">
+                        <span className="progress-pct">{isPaused ? '—' : `${Math.round((h.weekly_pct ?? 0) * 100)}%`}</span>
+                        <span className="progress-streak" style={{ color: 'var(--text-dim)' }}>{h.frequency}/wk</span>
+                      </span>
+                    </div>
+                    <div className="progress-bar-bg">
+                      <div className="progress-bar-fill" style={{ width: isPaused ? '0%' : `${Math.round((h.weekly_pct ?? 0) * 100)}%` }} />
+                    </div>
                   </div>
-                  <div className="progress-bar-bg">
-                    <div className="progress-bar-fill" style={{ width: `${Math.round((h.weekly_pct ?? 0) * 100)}%` }} />
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
 
@@ -234,7 +248,7 @@ function Dashboard({ onLogout }) {
             </div>
             <div className="card">
               <div className="card-title">Habit Scorecard</div>
-              <HabitScorecard stats={stats} />
+              <HabitScorecard stats={stats} habits={habits} />
             </div>
           </div>
         </>

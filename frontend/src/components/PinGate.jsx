@@ -67,8 +67,22 @@ export default function PinGate({ onSuccess }) {
     }
   }, [mode])
 
-  const handleSubmit = async () => {
-    if (pin.length < 4) { setError('Enter at least 4 digits'); return }
+  const handleSubmit = () => handleSubmitPin(pin)
+
+  const handleDigit = (d) => {
+    if (pin.length >= 8) return
+    const next = pin + d
+    setPin(next)
+    setError('')
+    // Auto-submit on 6 digits for sign-in only
+    if (mode === 'signin' && next.length === 6) {
+      setTimeout(() => handleSubmitPin(next), 150)
+    }
+  }
+
+  const handleSubmitPin = async (pinOverride) => {
+    const pinToUse = pinOverride || pin
+    if (pinToUse.length < 4) { setError('Enter at least 4 digits'); return }
     if (mode === 'signup' && !name.trim()) { setError('Enter your name'); return }
 
     setLoading(true)
@@ -76,8 +90,8 @@ export default function PinGate({ onSuccess }) {
     try {
       const url = mode === 'signup' ? `${BASE}/auth/signup` : `${BASE}/auth/signin`
       const body = mode === 'signup'
-        ? { name: name.trim(), pin, stay_signed_in: staySignedIn }
-        : { pin, stay_signed_in: staySignedIn }
+        ? { name: name.trim(), pin: pinToUse, stay_signed_in: staySignedIn }
+        : { pin: pinToUse, stay_signed_in: staySignedIn }
 
       const res = await fetch(url, {
         method: 'POST',
@@ -98,12 +112,6 @@ export default function PinGate({ onSuccess }) {
       setError('Network error — try again')
     }
     setLoading(false)
-  }
-
-  const handleDigit = (d) => {
-    if (pin.length >= 8) return
-    setPin(p => p + d)
-    setError('')
   }
 
   const handleDelete = () => {

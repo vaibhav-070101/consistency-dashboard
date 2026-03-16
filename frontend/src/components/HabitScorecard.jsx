@@ -1,20 +1,37 @@
 /**
  * HabitScorecard — compact analytics panel showing per-habit breakdown.
- *
- * For each habit shows: completed/expected, monthly %, weekly %, streak.
- * Also highlights the best and worst performing habit this month.
+ * Excludes paused/stopped habits from KPIs and highlights.
  */
 
-export default function HabitScorecard({ stats }) {
+export default function HabitScorecard({ stats, habits: rawHabits }) {
   if (!stats || stats.habits.length === 0) {
     return <p style={{ color: 'var(--text-dim)', fontSize: 13 }}>No data yet</p>
   }
 
-  const habits = stats.habits
-  const best = habits.reduce((a, b) => a.percentage > b.percentage ? a : b)
-  const worst = habits.reduce((a, b) => a.percentage < b.percentage ? a : b)
-  const totalCompleted = habits.reduce((s, h) => s + h.completed, 0)
-  const totalExpected = habits.reduce((s, h) => s + h.expected, 0)
+  const allHabits = stats.habits
+  const habitMap = {}
+  if (rawHabits) rawHabits.forEach(h => { habitMap[h.id] = h })
+
+  const activeHabits = allHabits.filter(h => {
+    const raw = habitMap[h.id]
+    return !raw || raw.status === 'active'
+  })
+
+  const best = activeHabits.length > 0
+    ? activeHabits.reduce((a, b) => a.percentage > b.percentage ? a : b)
+    : null
+  const worst = activeHabits.length > 0
+    ? activeHabits.reduce((a, b) => a.percentage < b.percentage ? a : b)
+    : null
+
+  const totalCompleted = activeHabits.reduce((s, h) => s + h.completed, 0)
+  const activeDays = activeHabits.length > 0
+    ? Math.max(...activeHabits.map(h => h.expected > 0 ? h.expected : 0))
+    : 0
+  const avgPct = activeHabits.length > 0
+    ? activeHabits.filter(h => h.expected > 0).reduce((s, h) => s + h.percentage, 0) /
+      Math.max(1, activeHabits.filter(h => h.expected > 0).length)
+    : 0
 
   return (
     <div className="scorecard">
@@ -24,24 +41,26 @@ export default function HabitScorecard({ stats }) {
           <span className="scorecard-kpi-label">Total Check-ins</span>
         </div>
         <div className="scorecard-kpi">
-          <span className="scorecard-kpi-value">{totalExpected}</span>
-          <span className="scorecard-kpi-label">Expected</span>
+          <span className="scorecard-kpi-value">{activeDays}</span>
+          <span className="scorecard-kpi-label">Active Days</span>
         </div>
         <div className="scorecard-kpi">
           <span className="scorecard-kpi-value" style={{ color: '#4caf50' }}>
-            {totalExpected > 0 ? Math.round(totalCompleted / totalExpected * 100) : 0}%
+            {Math.round(avgPct * 100)}%
           </span>
           <span className="scorecard-kpi-label">Hit Rate</span>
         </div>
       </div>
 
       <div className="scorecard-highlight">
-        <div className="scorecard-badge good">
-          <span className="scorecard-badge-label">Best</span>
-          <span className="scorecard-badge-name">{best.name}</span>
-          <span className="scorecard-badge-pct">{Math.round(best.percentage * 100)}%</span>
-        </div>
-        {worst.id !== best.id && (
+        {best && (
+          <div className="scorecard-badge good">
+            <span className="scorecard-badge-label">Best</span>
+            <span className="scorecard-badge-name">{best.name}</span>
+            <span className="scorecard-badge-pct">{Math.round(best.percentage * 100)}%</span>
+          </div>
+        )}
+        {worst && worst.id !== best?.id && (
           <div className="scorecard-badge warn">
             <span className="scorecard-badge-label">Needs Work</span>
             <span className="scorecard-badge-name">{worst.name}</span>
@@ -61,21 +80,28 @@ export default function HabitScorecard({ stats }) {
           </tr>
         </thead>
         <tbody>
-          {habits.map(h => (
-            <tr key={h.id}>
-              <td className="scorecard-habit-name">{h.name}</td>
-              <td>{h.completed}/{h.expected}</td>
-              <td style={{ color: pctColor(h.percentage) }}>
-                {Math.round(h.percentage * 100)}%
-              </td>
-              <td style={{ color: pctColor(h.weekly_pct ?? 0) }}>
-                {Math.round((h.weekly_pct ?? 0) * 100)}%
-              </td>
-              <td className="scorecard-streak">
-                {h.streak_label !== '—' ? `🔥 ${h.streak_label}` : '—'}
-              </td>
-            </tr>
-          ))}
+          {allHabits.map(h => {
+            const raw = habitMap[h.id]
+            const isPaused = raw?.status === 'paused'
+            return (
+              <tr key={h.id} style={isPaused ? { opacity: 0.45 } : undefined}>
+                <td className="scorecard-habit-name">
+                  {h.name}
+                  {isPaused && <span style={{ fontSize: 9, color: 'var(--orange)', marginLeft: 6 }}>PAUSED</span>}
+                </td>
+                <td>{h.completed}/{h.expected}</td>
+                <td style={{ color: isPaused ? 'var(--text-dim)' : pctColor(h.percentage) }}>
+                  {isPaused ? '—' : `${Math.round(h.percentage * 100)}%`}
+                </td>
+                <td style={{ color: isPaused ? 'var(--text-dim)' : pctColor(h.weekly_pct ?? 0) }}>
+                  {isPaused ? '—' : `${Math.round((h.weekly_pct ?? 0) * 100)}%`}
+                </td>
+                <td className="scorecard-streak">
+                  {isPaused ? '—' : h.streak_label !== '—' ? `🔥 ${h.streak_label}` : '—'}
+                </td>
+              </tr>
+            )
+          })}
         </tbody>
       </table>
     </div>
