@@ -92,6 +92,12 @@ export async function flushQueue() {
 
 if (typeof window !== 'undefined') {
   window.addEventListener('online', () => flushQueue());
+
+  // Retry queued actions every 30s (handles Render cold starts where
+  // we're technically online but the server is just slow to respond)
+  setInterval(() => {
+    if (getQueue().length > 0) flushQueue();
+  }, 30000);
 }
 
 // ── Core request ─────────────────────────────────────────────
