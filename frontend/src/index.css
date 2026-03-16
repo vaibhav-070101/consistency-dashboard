@@ -1,0 +1,841 @@
+/*
+  Global styles for the Consistency Dashboard.
+  Dark theme with green accents. All colors use CSS variables
+  so you can change the entire theme by editing :root.
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --bg: #0a0a0a;
+  --surface: #111;
+  --surface2: #1a1a1a;
+  --border: #252525;
+  --green: #4caf50;
+  --green-dark: #2e7d32;
+  --green-light: #81c784;
+  --green-bg: rgba(76, 175, 80, 0.1);
+  --text: #e0e0e0;
+  --text-dim: #777;
+  --text-bright: #fff;
+  --red: #ef5350;
+  --orange: #ffa726;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── Layout ──────────────────────────────────────────────── */
+
+.app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* grid-habit removed — habit tracker is now full-width */
+
+/* ─── Card (reusable panel) ───────────────────────────────── */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.card-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--green);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ─── Header ──────────────────────────────────────────────── */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.logo-mark svg {
+  width: 52px;
+  height: 52px;
+  display: block;
+}
+
+.brand-words {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-sub {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 5px;
+  color: var(--green);
+  text-transform: uppercase;
+  line-height: 1;
+  margin-bottom: 3px;
+}
+
+.brand-main {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text-bright);
+  letter-spacing: 0.5px;
+  line-height: 1.1;
+}
+
+/* ─── Date Picker ─────────────────────────────────────────── */
+
+.date-picker {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.date-picker-item {
+  position: relative;
+  cursor: pointer;
+}
+
+.date-display {
+  display: block;
+  user-select: none;
+  border-radius: 8px;
+  padding: 4px 8px;
+  transition: background 0.15s;
+}
+
+.date-display:hover {
+  background: var(--surface2);
+}
+
+.month-display {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text-bright);
+  letter-spacing: 0.5px;
+}
+
+.year-display {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+/* Hidden select overlays the visible text — clicking the text opens the native picker */
+.date-hidden-select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+@media (max-width: 600px) {
+  .brand-main { font-size: 15px; }
+  .month-display { font-size: 22px; }
+  .year-display { font-size: 18px; }
+  .logo-mark svg { width: 36px; height: 36px; }
+}
+
+/* ─── Stat Cards ──────────────────────────────────────────── */
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--green);
+}
+
+.stat-label {
+  font-size: 10px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 2px;
+}
+
+/* ─── Habit Tracker ───────────────────────────────────────── */
+
+.habit-grid {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
+}
+
+.habit-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 12px;
+  min-width: max-content;
+}
+
+.habit-table th,
+.habit-table td {
+  padding: 0;
+  text-align: center;
+  white-space: nowrap;
+  border: none;
+}
+
+/* ─── Column sizing ──────────────────────────────────────── */
+.col-name   { width: 150px; min-width: 150px; }
+.col-day    { width: 34px;  min-width: 34px; }
+.col-spacer { width: 10px;  min-width: 10px; max-width: 10px; }
+.col-pct    { width: 50px;  min-width: 50px; }
+
+/* ─── Week label row ─────────────────────────────────────── */
+.row-weeks th {
+  padding: 4px 0 2px;
+  background: var(--surface);
+}
+
+.th-week {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--green);
+  border-bottom: 2px solid var(--green-dark);
+}
+
+/* ─── Day header row ─────────────────────────────────────── */
+.row-days th {
+  background: var(--surface);
+  padding: 4px 0 8px;
+}
+
+.th-day .day-letter {
+  display: block;
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+
+.th-day .day-num {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.weekend-th .day-letter,
+.weekend-th .day-num { color: #555 !important; }
+
+/* ─── Spacer columns (clean week gaps) ───────────────────── */
+.th-spacer, .td-spacer {
+  background: var(--surface) !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
+/* ─── Habit name column — sticky left ────────────────────── */
+.th-name, .td-name {
+  text-align: left !important;
+  padding: 0 14px 0 0 !important;
+  background: var(--surface) !important;
+  position: sticky;
+  left: 0;
+  z-index: 3;
+}
+
+.th-name {
+  z-index: 5;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  vertical-align: bottom;
+  padding-bottom: 8px !important;
+}
+
+/* ─── % column — sticky right ────────────────────────────── */
+.th-pct, .td-pct {
+  background: var(--surface) !important;
+  position: sticky;
+  right: 0;
+  padding-left: 10px !important;
+}
+
+.th-pct {
+  z-index: 5;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-dim);
+  vertical-align: bottom;
+  padding-bottom: 8px !important;
+}
+
+.td-pct {
+  z-index: 1;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--green-light);
+}
+
+/* ─── Day cells ──────────────────────────────────────────── */
+.td-day { padding: 2px !important; }
+
+/* ─── Custom checkbox ────────────────────────────────────── */
+.habit-check-cell {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+}
+
+.habit-check-cell:hover {
+  border-color: var(--green);
+  background: rgba(76, 175, 80, 0.1);
+}
+
+.habit-check-cell.checked {
+  background: var(--green);
+  border-color: var(--green);
+}
+
+.habit-check-cell svg {
+  width: 16px;
+  height: 16px;
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+
+.habit-check-cell.checked svg { opacity: 1; }
+
+.habit-check-cell.disabled {
+  opacity: 0.12;
+  pointer-events: none;
+}
+
+/* ─── Habit name cell content ────────────────────────────── */
+.habit-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0;
+}
+
+.habit-name-cell .habit-freq {
+  font-size: 9px;
+  color: var(--text-dim);
+  background: var(--surface2);
+  padding: 2px 5px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.habit-name-cell .habit-freq:hover {
+  background: var(--green-dark);
+  color: var(--text-bright);
+}
+
+.habit-start-date {
+  font-size: 9px;
+  color: var(--text-dim);
+  background: var(--surface2);
+  padding: 2px 5px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.habit-start-date:hover {
+  background: #2a7a47;
+  color: var(--text-bright);
+}
+
+.habit-actions-btn {
+  margin-left: auto;
+  cursor: pointer;
+  color: var(--text-dim);
+  font-size: 16px;
+  line-height: 1;
+  padding: 0 4px;
+  border-radius: 4px;
+}
+
+.habit-actions-btn:hover {
+  color: var(--text-bright);
+  background: var(--surface2);
+}
+
+.habit-wrapper {
+  position: relative;
+}
+
+.habit-popover-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+}
+
+.habit-actions-popover {
+  position: absolute;
+  z-index: 51;
+  min-width: 210px;
+  background: #121212;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.7);
+}
+
+.habit-actions-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.popover-label {
+  font-size: 10px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.habit-actions-buttons {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.popover-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.popover-btn:hover {
+  border-color: var(--green);
+}
+
+.popover-btn.stop {
+  color: #ff8a80;
+}
+
+.popover-delete {
+  width: 100%;
+  background: transparent;
+  border: 1px solid #4a2323;
+  color: #ff8a80;
+  font-size: 11px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.popover-delete:hover {
+  background: rgba(255, 138, 128, 0.08);
+}
+
+.editable-name {
+  cursor: pointer;
+  border-bottom: 1px dashed transparent;
+  transition: border-color 0.15s;
+}
+
+.editable-name:hover { border-bottom-color: var(--green); }
+
+.edit-name-input {
+  background: var(--surface);
+  border: 1px solid var(--green);
+  color: var(--text);
+  font-size: 12px;
+  font-family: inherit;
+  padding: 2px 4px;
+  border-radius: 4px;
+  width: 80px;
+}
+
+.edit-freq-select {
+  background: var(--surface);
+  border: 1px solid var(--green);
+  color: var(--text);
+  font-size: 10px;
+  font-family: inherit;
+  padding: 1px 2px;
+  border-radius: 4px;
+  width: 50px;
+}
+
+.edit-date-input {
+  background: var(--surface);
+  border: 1px solid var(--green);
+  color: var(--text);
+  font-size: 10px;
+  font-family: inherit;
+  padding: 1px 3px;
+  border-radius: 4px;
+  width: 86px;
+}
+
+.remove-btn {
+  cursor: pointer;
+  color: var(--red);
+  font-size: 12px;
+  opacity: 0.4;
+  margin-left: auto;
+  padding: 0 4px;
+}
+
+.remove-btn:hover { opacity: 1; }
+
+/* ─── Add Habit Form ──────────────────────────────────────── */
+
+.add-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.add-form input, .add-form select {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.add-form input:focus, .add-form select:focus {
+  outline: none;
+  border-color: var(--green);
+}
+
+.add-form input[type="text"] { flex: 1; min-width: 120px; }
+.add-form input[type="date"] { width: 140px; }
+
+.btn {
+  background: var(--green);
+  border: none;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn:hover { background: var(--green-dark); }
+
+.btn-sm {
+  padding: 4px 10px;
+  font-size: 11px;
+  border-radius: 6px;
+}
+
+/* ─── Progress Bars ───────────────────────────────────────── */
+
+.progress-item {
+  margin-bottom: 14px;
+}
+
+.progress-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.progress-label {
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.progress-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.progress-pct {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--green-light);
+}
+
+.progress-streak {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.progress-bar-bg {
+  width: 100%;
+  height: 10px;
+  background: var(--surface2);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--green-dark), var(--green));
+  border-radius: 5px;
+  transition: width 0.4s ease;
+}
+
+/* ─── Quote Widget ────────────────────────────────────────── */
+
+.quote-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, var(--green-dark), var(--surface));
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+
+.quote-text {
+  flex: 1;
+  font-style: italic;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.quote-author {
+  font-style: normal;
+  color: var(--green-light);
+  font-weight: 600;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.quote-refresh {
+  background: rgba(255,255,255,0.1);
+  border: none;
+  color: var(--text);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.quote-refresh:hover { background: rgba(255,255,255,0.2); }
+
+/* ─── Chart container ─────────────────────────────────────── */
+
+.chart-wrap { width: 100%; height: 220px; min-width: 200px; min-height: 220px; }
+
+/* ─── Responsive ──────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .grid-2, .grid-habit { grid-template-columns: 1fr; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .month-label { font-size: 18px; min-width: auto; }
+}
+
+@media (max-width: 480px) {
+  .app { padding: 10px; }
+  .stat-value { font-size: 22px; }
+  .header-brand h1 { font-size: 12px; }
+}
+
+/* ─── Scrollbar ───────────────────────────────────────────── */
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* ─── Scorecard ───────────────────────────────────────────── */
+
+.scorecard-summary {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.scorecard-kpi {
+  flex: 1;
+  background: var(--surface2);
+  border-radius: 8px;
+  padding: 10px 8px;
+  text-align: center;
+}
+
+.scorecard-kpi-value {
+  display: block;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-bright);
+}
+
+.scorecard-kpi-label {
+  font-size: 9px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.scorecard-highlight {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.scorecard-badge {
+  flex: 1;
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.scorecard-badge.good {
+  background: rgba(76, 175, 80, 0.12);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.scorecard-badge.warn {
+  background: rgba(255, 167, 38, 0.1);
+  border: 1px solid rgba(255, 167, 38, 0.25);
+}
+
+.scorecard-badge-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+}
+
+.scorecard-badge-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-bright);
+}
+
+.scorecard-badge-pct {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--green);
+}
+
+.scorecard-badge.warn .scorecard-badge-pct {
+  color: #ffa726;
+}
+
+.scorecard-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.scorecard-table th {
+  text-align: left;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 6px 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.scorecard-table td {
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 500;
+}
+
+.scorecard-habit-name {
+  color: var(--text-bright);
+}
+
+.scorecard-streak {
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+/* ─── Loading ─────────────────────────────────────────────── */
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100px;
+  color: var(--text-dim);
+  font-size: 13px;
+}
