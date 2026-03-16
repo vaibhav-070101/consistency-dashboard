@@ -57,7 +57,12 @@ app = FastAPI(title="Consistency Dashboard API")
 # Allow the React dev server (port 5173) to call this API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "https://consistency-dashboard.vercel.app",
+        "https://consistency-dashboard-vaibhav-070101s-projects.vercel.app",
+    ],
     allow_methods=["*"],
     allow_headers=["*"],
 )
