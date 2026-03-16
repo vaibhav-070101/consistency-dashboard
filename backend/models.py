@@ -1,9 +1,12 @@
 """
 SQLAlchemy ORM models — these map directly to database tables.
 
-Two tables:
-  habits     → defines what you're tracking (name, frequency, date range)
-  habit_logs → one row per completion (habit_id + date = "I did this on that day")
+Tables:
+  users              → registered users with unique PINs
+  auth_tokens        → session tokens per user (DB-backed, survives restarts)
+  habits             → what you're tracking (name, frequency, date range)
+  habit_logs         → one row per completion (habit_id + date)
+  habit_pause_periods → pause windows for habits
 """
 
 from sqlalchemy import Column, Integer, String, Boolean, Date, DateTime, UniqueConstraint
@@ -11,15 +14,35 @@ from sqlalchemy import func
 from database import Base
 
 
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    pin_hash = Column(String, nullable=False, unique=True, index=True)
+    created_at = Column(DateTime, server_default=func.now())
+
+
+class AuthToken(Base):
+    __tablename__ = "auth_tokens"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, nullable=False, index=True)
+    token = Column(String, nullable=False, unique=True, index=True)
+    expires_at = Column(DateTime, nullable=False)
+    created_at = Column(DateTime, server_default=func.now())
+
+
 class Habit(Base):
     __tablename__ = "habits"
 
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, nullable=True, index=True)
     name = Column(String, nullable=False)
-    frequency = Column(Integer, nullable=False)  # target days per week (1-7)
-    start_date = Column(Date, nullable=False)     # when tracking begins
-    end_date = Column(Date, nullable=True)        # optional end date
-    status = Column(String, nullable=False, default="active")  # active | paused | stopped
+    frequency = Column(Integer, nullable=False)
+    start_date = Column(Date, nullable=False)
+    end_date = Column(Date, nullable=True)
+    status = Column(String, nullable=False, default="active")
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, server_default=func.now())
 

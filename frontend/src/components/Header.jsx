@@ -10,7 +10,7 @@ const MONTHS = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ]
 
-export default function Header({ month, year, onMonthChange, onYearChange }) {
+export default function Header({ month, year, onMonthChange, onYearChange, userName, onLogout }) {
   const currentYear = new Date().getFullYear()
   const years = []
   for (let y = currentYear - 3; y <= currentYear + 2; y++) years.push(y)
@@ -34,6 +34,13 @@ export default function Header({ month, year, onMonthChange, onYearChange }) {
         </div>
       </div>
 
+      <div className="header-right">
+        {userName && (
+          <div className="user-badge">
+            <span className="user-name">{userName}</span>
+            <button className="logout-btn" onClick={onLogout} title="Sign out">✕</button>
+          </div>
+        )}
       <div className="date-picker">
         <div className="date-picker-item">
           <span className="date-display month-display">{MONTHS[month - 1]}</span>
@@ -59,6 +66,7 @@ export default function Header({ month, year, onMonthChange, onYearChange }) {
             ))}
           </select>
         </div>
+      </div>
       </div>
     </div>
   )

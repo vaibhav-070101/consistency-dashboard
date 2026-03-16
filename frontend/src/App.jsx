@@ -1,16 +1,9 @@
 /**
- * App.jsx — Root component. Holds all state and passes data to children.
- *
- * React key concepts used here:
- *   useState  → declares a piece of state that triggers re-render when changed
- *   useEffect → runs side effects (API calls) when dependencies change
- *   useCallback → memoizes a function so it doesn't get recreated every render
- *
- * Data flow: App fetches from API → passes data as props to child components
- *            Child components call callbacks (passed as props) to trigger actions
+ * App.jsx — Root component. Handles auth flow and passes data to children.
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import PinGate, { validateStoredToken, clearAuth, getStoredUser, getToken } from './components/PinGate'
 import Header from './components/Header'
 import StatsCards from './components/StatsCards'
 import ConsistencyChart from './components/ConsistencyChart'
@@ -19,27 +12,52 @@ import QuoteWidget from './components/QuoteWidget'
 import WeeklyBarChart from './components/WeeklyBarChart'
 import HabitScorecard from './components/HabitScorecard'
 import * as api from './api'
-import { onSaveStatus, flushQueue, getPendingCount } from './api'
+import { onSaveStatus, onAuthExpired, flushQueue, getPendingCount } from './api'
 
 export default function App() {
+  const [authenticated, setAuthenticated] = useState(null)
+
+  useEffect(() => {
+    validateStoredToken().then(valid => setAuthenticated(valid))
+  }, [])
+
+  useEffect(() => {
+    onAuthExpired(() => {
+      clearAuth();
+      setAuthenticated(false);
+    })
+  }, [])
+
+  if (authenticated === null) {
+    return <div className="loading">Loading...</div>
+  }
+
+  if (!authenticated) {
+    return <PinGate onSuccess={() => setAuthenticated(true)} />
+  }
+
+  return <Dashboard onLogout={() => { clearAuth(); setAuthenticated(false) }} />
+}
+
+function Dashboard({ onLogout }) {
   const now = new Date()
-  const [month, setMonth] = useState(now.getMonth() + 1) // 1-12
+  const [month, setMonth] = useState(now.getMonth() + 1)
   const [year, setYear] = useState(now.getFullYear())
   const [habits, setHabits] = useState([])
-  const [logs, setLogs] = useState({})      // { habitId: ["2026-03-01", ...] }
-  const [stats, setStats] = useState(null)  // MonthlyStats from backend
+  const [logs, setLogs] = useState({})
+  const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [saveStatus, setSaveStatus] = useState('saved') // saved | saving | syncing | offline | error
+  const [saveStatus, setSaveStatus] = useState('saved')
   const trackerRef = useRef(null)
+  const user = getStoredUser()
 
   useEffect(() => { onSaveStatus(setSaveStatus) }, [])
 
-  // Fetch all data whenever month/year changes
   const fetchData = useCallback(async () => {
     setLoading(true)
     try {
       const [h, l, s] = await Promise.all([
-        api.getHabits(),
+        api.getHabits(month, year),
         api.getLogs(month, year),
         api.getMonthlyStats(month, year),
       ])
@@ -54,9 +72,7 @@ export default function App() {
 
   useEffect(() => { fetchData() }, [fetchData])
 
-  // Toggle a habit log — optimistic update for snappy UX
   const handleToggle = async (habitId, dateStr) => {
-    // Immediately update local state (optimistic)
     setLogs(prev => {
       const current = prev[habitId] || []
       const exists = current.includes(dateStr)
@@ -67,21 +83,16 @@ export default function App() {
           : [...current, dateStr],
       }
     })
-
-    // Then sync with backend
     await api.toggleLog(habitId, dateStr)
-    // Re-fetch stats (streaks, percentages need server-side recalc)
     const s = await api.getMonthlyStats(month, year)
     setStats(s)
   }
 
-  // Create a new habit
   const handleCreateHabit = async (data) => {
     await api.createHabit(data)
     fetchData()
   }
 
-  // Update a habit (name, frequency, etc.)
   const handleUpdateHabit = async (id, data) => {
     await api.updateHabit(id, data)
     fetchData()
@@ -92,10 +103,22 @@ export default function App() {
     fetchData()
   }
 
-  // Delete a habit
   const handleDeleteHabit = async (id) => {
     await api.deleteHabit(id)
     fetchData()
+  }
+
+  const handleLogout = async () => {
+    const token = getToken()
+    if (token) {
+      try {
+        await fetch(`${import.meta.env.VITE_API_URL || '/api'}/auth/logout`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+        })
+      } catch { /* ignore */ }
+    }
+    onLogout()
   }
 
   return (
@@ -105,6 +128,8 @@ export default function App() {
         year={year}
         onMonthChange={setMonth}
         onYearChange={setYear}
+        userName={user?.name}
+        onLogout={handleLogout}
       />
 
       <div className="save-indicator-row">
@@ -168,19 +193,14 @@ export default function App() {
                   <div className="progress-top">
                     <span className="progress-label">{h.name}</span>
                     <span className="progress-meta">
-                      <span className="progress-pct">
-                        {Math.round(h.percentage * 100)}%
-                      </span>
+                      <span className="progress-pct">{Math.round(h.percentage * 100)}%</span>
                       {h.streak_label !== '—' && (
-                        <span className="progress-streak">
-                          🔥 {h.streak_label}
-                        </span>
+                        <span className="progress-streak">🔥 {h.streak_label}</span>
                       )}
                     </span>
                   </div>
                   <div className="progress-bar-bg">
-                    <div className="progress-bar-fill"
-                      style={{ width: `${Math.round(h.percentage * 100)}%` }} />
+                    <div className="progress-bar-fill" style={{ width: `${Math.round(h.percentage * 100)}%` }} />
                   </div>
                 </div>
               ))}
@@ -193,17 +213,12 @@ export default function App() {
                   <div className="progress-top">
                     <span className="progress-label">{h.name}</span>
                     <span className="progress-meta">
-                      <span className="progress-pct">
-                        {Math.round((h.weekly_pct ?? 0) * 100)}%
-                      </span>
-                      <span className="progress-streak" style={{ color: 'var(--text-dim)' }}>
-                        {h.frequency}/wk
-                      </span>
+                      <span className="progress-pct">{Math.round((h.weekly_pct ?? 0) * 100)}%</span>
+                      <span className="progress-streak" style={{ color: 'var(--text-dim)' }}>{h.frequency}/wk</span>
                     </span>
                   </div>
                   <div className="progress-bar-bg">
-                    <div className="progress-bar-fill"
-                      style={{ width: `${Math.round((h.weekly_pct ?? 0) * 100)}%` }} />
+                    <div className="progress-bar-fill" style={{ width: `${Math.round((h.weekly_pct ?? 0) * 100)}%` }} />
                   </div>
                 </div>
               ))}

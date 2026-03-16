@@ -8,8 +8,31 @@ FastAPI uses these for:
 """
 
 from pydantic import BaseModel, Field
-from datetime import date
+from datetime import date, datetime
 from typing import Optional
+
+
+# ── Auth schemas ──────────────────────────────────────────────
+
+class SignUpRequest(BaseModel):
+    name: str = Field(..., min_length=1, max_length=50)
+    pin: str = Field(..., min_length=4, max_length=8, pattern=r"^\d+$")
+
+class SignInRequest(BaseModel):
+    pin: str = Field(..., min_length=4, max_length=8, pattern=r"^\d+$")
+    stay_signed_in: bool = True
+
+class UserResponse(BaseModel):
+    id: int
+    name: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class AuthResponse(BaseModel):
+    token: str
+    user: UserResponse
 
 
 # ── Habit schemas ─────────────────────────────────────────────
